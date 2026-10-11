@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Online Voting System | Voter Portal</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" type="text/css" href="../css/style_major.css">
+  <link rel="stylesheet" type="text/css" href="../css/login.css">
+</head>
+<body style="min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-start; padding: 0;">
+  <!-- App Navbar -->
+  <header class="app-navbar" style="width: 100%; border-radius: 0;">
+    <div class="brand-wrapper">
+      <div class="brand-icon-box">🗳️</div>
+      <div>
+        <div class="brand-title">Online Voting System</div>
+        <div class="brand-subtitle">Voter Portal</div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <div class="network-status-badge">
+        <span class="pulse-indicator"></span>
+        <span id="networkName">Blockchain Connected</span>
+      </div>
+      <a href="/" class="btn-signout" style="padding: 6px 14px; font-size: 12px;">Exit</a>
+    </div>
+  </header>
+
+  <main style="width: 100%; max-width: 680px; margin: 30px auto; padding: 0 16px; flex: 1;">
+
+    <!-- ================= STAGE 0: LOCKED (BEFORE SETUP COMPLETION) ================= -->
+    <div id="stationLockedStage" class="glass-card" style="display: none; padding: 36px 36px; border-radius: 20px; text-align: center; border-color: rgba(239, 68, 68, 0.35);">
+      <div style="font-size: 48px; margin-bottom: 12px;">🔒</div>
+      <span class="kpi-tag tag-purple" style="margin-bottom: 10px;">VOTING NOT STARTED</span>
+      <h2 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 8px;">
+        Voting is Not Open Yet
+      </h2>
+      <p style="font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 22px; max-width: 520px; margin-left: auto; margin-right: auto;">
+        Voting will become available once the admin completes the 3 setup steps:
+      </p>
+
+      <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 18px 20px; text-align: left; margin-bottom: 24px; font-size: 13px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="display: flex; align-items: center; gap: 10px;">
+            <span id="kioskChkCandIcon">❌</span>
+            <span>1. Candidates Added</span>
+          </span>
+          <span id="kioskChkCandStatus" class="kpi-tag tag-purple font-mono" style="font-size: 11px;">0 Candidates</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="display: flex; align-items: center; gap: 10px;">
+            <span id="kioskChkVoterIcon">❌</span>
+            <span>2. Voters List Uploaded</span>
+          </span>
+          <span id="kioskChkVoterStatus" class="kpi-tag tag-blue font-mono" style="font-size: 11px;">0 Voters</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="display: flex; align-items: center; gap: 10px;">
+            <span id="kioskChkTimelineIcon">❌</span>
+            <span>3. Voting Timer Started</span>
+          </span>
+          <span id="kioskChkTimelineStatus" class="kpi-tag tag-purple font-mono" style="font-size: 11px;">Not Started</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <a href="/" class="btn-secondary-custom" style="padding: 12px 24px; text-decoration: none;">
+          ⬅ Back to Home
+        </a>
+        <button type="button" class="btn-gradient" style="padding: 12px 24px;" onclick="window.location.reload()">
+          🔄 Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- ================= STAGE 1: VOTER VERIFICATION & PHOTO CAPTURE ================= -->
+    <div id="voterAuthStage" class="glass-card" style="padding: 32px 36px; border-radius: 20px;">
+      <div style="text-align: center; margin-bottom: 22px;">
+        <span class="kpi-tag tag-blue" style="margin-bottom: 8px;">STEP 1 OF 2 • VOTER VERIFICATION</span>
+        <h2 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 4px;">
+          Voter Identity Verification
+        </h2>
+        <p style="font-size: 13px; color: #94a3b8;">
+          Enter your name and Voter ID, capture your photo, and proceed to vote.
+        </p>
+      </div>
+
+      <!-- Clean Camera Feed Container (No lasers, no reticles) -->
+      <div style="position: relative; width: 100%; height: 210px; border-radius: 12px; background: #0b1120; border: 1px solid rgba(255, 255, 255, 0.12); overflow: hidden; margin-bottom: 20px; display: flex; align-items: center; justify-content: center;">
+        <video id="webcamVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+        <canvas id="cameraFallbackCanvas" style="display: none; width: 100%; height: 100%;"></canvas>
+        <canvas id="capturedPhotoCanvas" style="display: none;"></canvas>
+        <div style="position: absolute; top: 10px; left: 12px; background: rgba(0,0,0,0.65); padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #e2e8f0; display: flex; align-items: center; gap: 6px; z-index: 2;">
+          <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span>
+          Camera Live
+        </div>
+      </div>
+
+      <!-- Error / Status Alert -->
+      <div id="voterAuthAlert" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 18px; line-height: 1.45;">
+        <!-- Populated dynamically -->
+      </div>
+
+      <!-- Verification Form -->
+      <form id="kioskAuthForm">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label style="font-size: 13px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+            Full Name
+          </label>
+          <input type="text" class="input-custom" id="kiosk_citizen_name" placeholder="Enter your Full Name (e.g. John Doe)" required autocomplete="off">
+        </div>
+        <div class="form-group" style="margin-bottom: 22px;">
+          <label style="font-size: 13px; font-weight: 600; color: #cbd5e1; display: block; margin-bottom: 6px;">
+            Voter ID Number
+          </label>
+          <input type="text" class="input-custom" id="kiosk_citizen_uid" placeholder="Enter your Voter ID (e.g. VOT-101)" required autocomplete="off">
+        </div>
+        <button type="submit" id="btnVerifyAndCapture" class="btn-gradient" style="width: 100%; padding: 15px; font-size: 15px;">
+          📷 Capture Photo & Proceed to Vote
+        </button>
+      </form>
+    </div>
+
+    <!-- ================= STAGE 2: CANDIDATE SELECTION SCREEN ================= -->
+    <div id="voterBallotStage" style="display: none;">
+      <!-- Banner with Live Countdown -->
+      <div class="hero-banner" style="padding: 22px 28px; margin-bottom: 20px;">
+        <div class="hero-content">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <span class="kpi-tag tag-green" id="electionPhaseTag">VOTING ACTIVE</span>
+            <span style="font-size: 13px; color: #94a3b8;">Secret & Secure Ballot</span>
+          </div>
+          <h1 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Choose Your Candidate</h1>
+          <p style="font-size: 13px; color: #94a3b8;">
+            Voter: <strong id="electorBadgeName" style="color: #60a5fa;">Voter</strong> (<span id="electorBadgeUID" class="font-mono" style="color: #cbd5e1;">-</span>)
+          </p>
+        </div>
+        <!-- Countdown Ticker -->
+        <div class="countdown-box">
+          <div class="countdown-unit">
+            <div class="countdown-val" id="cdDays">00</div>
+            <div class="countdown-label">Days</div>
+          </div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-unit">
+            <div class="countdown-val" id="cdHours">00</div>
+            <div class="countdown-label">Hours</div>
+          </div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-unit">
+            <div class="countdown-val" id="cdMins">00</div>
+            <div class="countdown-label">Mins</div>
+          </div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-unit">
+            <div class="countdown-val" id="cdSecs">00</div>
+            <div class="countdown-label">Secs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verified Voter Card with Live Photo Snapshot & SHA-256 Fingerprint -->
+      <div id="voterVerifiedCard" class="glass-card" style="padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; background: rgba(14, 21, 38, 0.7); border: 1px solid rgba(16, 185, 129, 0.3);">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 52px; height: 52px; border-radius: 8px; overflow: hidden; border: 2px solid #10b981; background: #000; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+            <img id="voterVerifiedPhotoImg" src="" alt="Voter Snapshot" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <strong id="voterVerifiedName" style="color: #ffffff; font-size: 15px;">Voter Name</strong>
+              <span class="kpi-tag tag-green" style="font-size: 10px; padding: 2px 6px;">Photo Verified ✓</span>
+            </div>
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">
+              Voter ID: <span id="voterVerifiedUID" class="font-mono" style="color: #60a5fa;">-</span> • 
+              <span style="color: #34d399;">Saved to Local Audit Storage</span>
+            </div>
+            <div style="font-size: 11px; color: #64748b; font-family: monospace; margin-top: 2px;" id="voterVerifiedHashDisplay">
+              SHA-256: -
+            </div>
+          </div>
+        </div>
+        <span class="kpi-tag tag-purple font-mono" style="font-size: 11px;">Single Ballot Authorized</span>
+      </div>
+
+      <!-- Success Notification Box with Full Blockchain Verification Receipt -->
+      <div id="voteSealedSuccessBox" style="display: none; background: rgba(16, 185, 129, 0.12); border: 2px solid #10b981; border-radius: 16px; padding: 26px 28px; margin-bottom: 20px;">
+        <div style="text-align: center; margin-bottom: 18px;">
+          <div style="font-size: 38px; margin-bottom: 6px;">🛡️</div>
+          <span class="kpi-tag tag-green" style="margin-bottom: 6px;">BLOCKCHAIN VERIFIED</span>
+          <h2 style="color: #34d399; font-size: 22px; font-weight: 800; margin: 4px 0;">
+            Vote Mined & Sealed on Blockchain!
+          </h2>
+          <p style="color: #cbd5e1; font-size: 13px; margin: 0;">
+            Your ballot is permanently etched into the Ethereum decentralized ledger. It cannot be altered, forged, or deleted.
+          </p>
+        </div>
+
+        <!-- Cryptographic Receipt Details -->
+        <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 18px 20px; font-size: 13px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+            <span style="color: #94a3b8;">Blockchain Status:</span>
+            <span style="color: #34d399; font-weight: 700;">CONFIRMED & MINED</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+            <span style="color: #94a3b8;">Block Number:</span>
+            <span id="receiptBlockNumber" class="font-mono" style="color: #60a5fa; font-weight: 700;">Block #--</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+            <span style="color: #94a3b8;">Transaction Hash:</span>
+            <span id="receiptTxHash" class="font-mono" style="color: #cbd5e1; font-size: 12px; max-width: 320px; word-break: break-all; text-align: right;">0x...</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+            <span style="color: #94a3b8;">Smart Contract:</span>
+            <span id="receiptContractAddr" class="font-mono" style="color: #a78bfa; font-size: 12px;">0x...</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #94a3b8;">Anti-Duplicate Protection:</span>
+            <span style="color: #10b981; font-weight: 700;">Locked for Current Election Round</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <span style="font-size: 12px; color: #94a3b8;" id="kioskResetCountdownText">
+            Returning to voter verification screen in 5 seconds for next voter...
+          </span>
+          <button type="button" class="btn-secondary-custom" style="padding: 8px 16px; font-size: 12px;" onclick="App.returnToKioskAuthImmediately()">
+            ➔ Next Voter Immediately
+          </button>
+        </div>
+      </div>
+
+      <!-- Candidate Selection Container -->
+      <div class="glass-card" id="ballotSelectionBox" style="padding: 24px 28px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2 style="font-size: 17px; font-weight: 700;">Select a Candidate</h2>
+          <span class="kpi-tag tag-blue" id="ballotCandidateCountBadge">Candidates</span>
+        </div>
+
+        <div id="ballotCardsGrid" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- Hidden radio inputs container -->
+      <div id="boxCandidate" style="display: none;"></div>
+
+      <!-- Submit Vote Button -->
+      <div id="voteActionContainer" style="text-align: center;">
+        <button id="voteButton" class="btn-gradient" style="padding: 16px 48px; font-size: 16px; width: 100%;" onclick="App.vote()" disabled>
+          Select a Candidate Above to Vote
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer style="text-align: center; font-size: 12px; color: #64748b; padding: 20px 0;">
+    <span>🔒 Secure Blockchain Voting • Tamper-Proof</span>
+  </footer>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="../dist/app.bundle.js" type="module"></script>
+</body>
+</html>

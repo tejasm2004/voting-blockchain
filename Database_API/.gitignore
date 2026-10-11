@@ -1,0 +1,6 @@
+__pycache__
+*.pyc
+*.sqlite
+*.db
+captured_photos/*
+!captured_photos/.gitkeep

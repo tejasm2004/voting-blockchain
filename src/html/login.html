@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Online Voting System | Login</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" type="text/css" href="../css/login.css">
+</head>
+<body>
+  <div class="brand-header">
+    <div class="brand-badge">
+      <span class="pulse-dot"></span>
+      Blockchain Verified
+    </div>
+    <h1>Online Voting System</h1>
+    <p>Secure Decentralized Voting Platform</p>
+  </div>
+
+  <div class="login-card" style="max-width: 500px;">
+    <!-- Error Alert Box -->
+    <div id="authAlert" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 20px; line-height: 1.45;">
+      <!-- Populated dynamically -->
+    </div>
+
+    <!-- ================= 1. PHASE 1: ADMIN LOGIN (ONLY OPTION SHOWN INITIALLY) ================= -->
+    <div id="adminPortalSection">
+      <div class="login-card-header" style="text-align: center;">
+        <span class="kpi-tag tag-purple" style="margin-bottom: 8px;">SETUP MODE</span>
+        <h2>Admin Login</h2>
+        <p>Log in to manage candidates, upload the voters list, and start the voting timer.</p>
+      </div>
+
+      <!-- Live 3-task status indicators -->
+      <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; font-size: 13px; display: flex; flex-direction: column; gap: 9px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span id="chkCandIcon">❌</span>
+            <span>1. Add Candidates:</span>
+          </span>
+          <span id="chkCandStatus" class="kpi-tag tag-purple font-mono" style="font-size: 11px;">Pending</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span id="chkVoterIcon">❌</span>
+            <span>2. Upload Voters List:</span>
+          </span>
+          <span id="chkVoterStatus" class="kpi-tag tag-blue font-mono" style="font-size: 11px;">Pending</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span id="chkTimelineIcon">❌</span>
+            <span>3. Set Timer & Start:</span>
+          </span>
+          <span id="chkTimelineStatus" class="kpi-tag tag-purple font-mono" style="font-size: 11px;">Pending</span>
+        </div>
+      </div>
+
+      <form id="adminLoginForm">
+        <div class="form-group">
+          <label for="admin_id">Admin Username / ID</label>
+          <input type="text" class="form-control" id="admin_id" value="admin" placeholder="Enter Admin ID" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="admin_password">Password</label>
+          <input type="password" class="form-control" id="admin_password" value="admin123" placeholder="Enter Password" required>
+        </div>
+        <button type="submit" id="adminSubmitBtn" class="btn-primary">
+          Login as Admin
+        </button>
+      </form>
+
+      <p style="font-size: 11px; color: #64748b; text-align: center; margin-top: 14px; line-height: 1.45;">
+        🔒 Once setup is completed and voting begins, this portal switches automatically to the Voter Station.
+      </p>
+    </div>
+
+    <!-- ================= 2. PHASE 2: VOTER STATION (SHOWN ONLY AFTER 3 TASKS ARE DONE) ================= -->
+    <div id="voterPortalSection" style="display: none; text-align: center;">
+      <div style="margin-bottom: 12px;">
+        <span class="brand-badge" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+          <span class="pulse-dot"></span>
+          VOTING ACTIVE
+        </span>
+      </div>
+      <div style="font-size: 44px; margin-bottom: 10px;">🗳️</div>
+      <h2 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px;">
+        Voting is Open
+      </h2>
+      <p style="font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 20px;">
+        Voting is currently open. Enter your details, capture your photo, and cast your vote securely on the blockchain.
+      </p>
+
+      <!-- Live Countdown Card -->
+      <div style="background: rgba(14, 21, 38, 0.85); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 13px; color: #94a3b8;">Time Remaining:</span>
+        <span id="portalCdTimer" class="font-mono" style="font-size: 20px; font-weight: 800; color: #34d399;">00:00:00</span>
+      </div>
+
+      <a href="/index.html" class="btn-primary" style="display: block; text-decoration: none; padding: 16px 24px; font-size: 16px; font-weight: 700; background: linear-gradient(135deg, #10b981, #059669); text-align: center; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35);">
+        🗳️ Proceed to Vote ➔
+      </a>
+
+      <div style="margin-top: 16px; font-size: 12px; color: #64748b; background: rgba(0,0,0,0.25); border-radius: 8px; padding: 10px; line-height: 1.4;">
+        🔒 Admin controls are locked while voting is in progress.
+      </div>
+    </div>
+
+    <!-- ================= 3. PHASE 3: VOTING CONCLUDED (RESTORES ADMIN TO VIEW RESULTS) ================= -->
+    <div id="concludedPortalSection" style="display: none; text-align: center;">
+      <div style="margin-bottom: 12px;">
+        <span class="brand-badge" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
+          VOTING ENDED • TIMER EXPIRED
+        </span>
+      </div>
+      <div style="font-size: 44px; margin-bottom: 10px;">⏹️</div>
+      <h2 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px;">
+        Voting has Ended
+      </h2>
+      <p style="font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 20px;">
+        The voting time has expired and voting is closed. Admin can log in to view the final results.
+      </p>
+
+      <button type="button" class="btn-primary" style="padding: 14px 20px;" onclick="showAdminFormForAudit()">
+        View Final Results (Admin Login)
+      </button>
+    </div>
+  </div>
+
+  <div class="security-footer">
+    <span>🔒 Secure Authentication</span>
+    <span>•</span>
+    <span>⛓️ Blockchain Verified</span>
+    <span>•</span>
+    <span>🛡️ Tamper-Proof</span>
+  </div>
+
+  <script src="../js/login.js"></script>
+</body>
+</html>

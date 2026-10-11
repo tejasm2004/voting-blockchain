@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Online Voting System | Admin Dashboard</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="stylesheet" type="text/css" href="../css/style_major.css">
+  <!-- SheetJS library for Excel (.xlsx, .xls, .csv) client-side parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <!-- App Navbar -->
+  <header class="app-navbar">
+    <div class="brand-wrapper">
+      <div class="brand-icon-box">🛡️</div>
+      <div>
+        <div class="brand-title">Online Voting System</div>
+        <div class="brand-subtitle">Admin Management Dashboard</div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <div class="network-status-badge">
+        <span class="pulse-indicator"></span>
+        <span id="networkName">System Connected</span>
+      </div>
+      <div class="user-account-badge">
+        <span>Admin:</span>
+        <span id="accountAddressShort" class="font-mono">Connecting...</span>
+      </div>
+      <a href="/" class="btn-signout" onclick="localStorage.clear();">Logout</a>
+    </div>
+  </header>
+
+  <main class="page-container">
+    <!-- Hero Banner with Live Countdown -->
+    <div class="hero-banner">
+      <div class="hero-content">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+          <span class="kpi-tag tag-purple" id="electionPhaseTag">SETUP MODE</span>
+          <span style="font-size: 13px; color: #94a3b8;">System Height: <strong id="currentBlockNumber" class="font-mono">Syncing...</strong></span>
+        </div>
+        <h1 id="electionTitleDisplay">Voting Management Dashboard</h1>
+        <p id="electionDescDisplay">Add candidates, upload eligible voters list (Excel/CSV), set the voting timer, and monitor voting in real time.</p>
+      </div>
+      <!-- Countdown Ticker -->
+      <div class="countdown-box">
+        <div class="countdown-unit">
+          <div class="countdown-val" id="cdDays">00</div>
+          <div class="countdown-label">Days</div>
+        </div>
+        <div class="countdown-sep">:</div>
+        <div class="countdown-unit">
+          <div class="countdown-val" id="cdHours">00</div>
+          <div class="countdown-label">Hours</div>
+        </div>
+        <div class="countdown-sep">:</div>
+        <div class="countdown-unit">
+          <div class="countdown-val" id="cdMins">00</div>
+          <div class="countdown-label">Mins</div>
+        </div>
+        <div class="countdown-sep">:</div>
+        <div class="countdown-unit">
+          <div class="countdown-val" id="cdSecs">00</div>
+          <div class="countdown-label">Secs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= RESULTS SECTION (DISPLAYED ON TIMELINE EXPIRATION / CONCLUDED) ================= -->
+    <div id="certifiedResultsSection" class="glass-card" style="display: none; margin-bottom: 24px; padding: 26px 28px; border: 2px solid rgba(16, 185, 129, 0.4); background: rgba(6, 15, 30, 0.85);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <span class="kpi-tag tag-green" style="font-size: 11px; margin-bottom: 6px;">VOTING CLOSED • RESULTS VERIFIED</span>
+          <h2 style="font-size: 22px; font-weight: 800; color: #ffffff; margin: 4px 0;">Final Election Results</h2>
+          <p style="font-size: 13px; color: #94a3b8; margin: 0;">Certified official results.</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <button type="button" class="btn-gradient" onclick="App.downloadVoterPhotoCSV()" style="padding: 10px 18px; font-size: 13px;">
+            📥 Download Voters & Photos (.csv)
+          </button>
+          <button type="button" class="btn-secondary-custom" onclick="App.resetElectionCycle()" style="padding: 10px 18px; font-size: 13px; border-color: rgba(59, 130, 246, 0.4); color: #60a5fa;">
+            🔄 Start New Election
+          </button>
+        </div>
+      </div>
+
+      <!-- Top 2 Places (Green for Highest, Yellow for 2nd Highest, NO EMOJI TROPHIES) -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 24px;">
+        
+        <!-- Highest Votes: GREEN THEME (NO EMOJI TROPHIES) -->
+        <div style="background: rgba(16, 185, 129, 0.12); border: 2px solid #10b981; border-radius: 14px; padding: 22px 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="background: #10b981; color: #022c22; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px;">
+              HIGHEST VOTES
+            </span>
+            <span style="font-size: 12px; color: #34d399; font-weight: 700; text-transform: uppercase;">
+              1st Position • Winner
+            </span>
+          </div>
+          <h3 id="winnerName" style="font-size: 20px; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Candidate Name</h3>
+          <div id="winnerParty" style="font-size: 13px; color: #6ee7b7; font-weight: 600; margin-bottom: 16px;">Category / Group / Party</div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid rgba(16, 185, 129, 0.25); padding-top: 12px;">
+            <span style="font-size: 13px; color: #cbd5e1;">Total Votes Cast:</span>
+            <span id="winnerVotes" class="font-mono" style="font-size: 28px; font-weight: 900; color: #34d399;">0</span>
+          </div>
+        </div>
+
+        <!-- 2nd Highest Votes: YELLOW THEME (NO EMOJI TROPHIES) -->
+        <div style="background: rgba(245, 158, 11, 0.12); border: 2px solid #f59e0b; border-radius: 14px; padding: 22px 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="background: #f59e0b; color: #451a03; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px;">
+              2ND HIGHEST VOTES
+            </span>
+            <span style="font-size: 12px; color: #fbbf24; font-weight: 700; text-transform: uppercase;">
+              2nd Position • Runner-up
+            </span>
+          </div>
+          <h3 id="runnerUpName" style="font-size: 20px; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Candidate Name</h3>
+          <div id="runnerUpParty" style="font-size: 13px; color: #fcd34d; font-weight: 600; margin-bottom: 16px;">Category / Group / Party</div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid rgba(245, 158, 11, 0.25); padding-top: 12px;">
+            <span style="font-size: 13px; color: #cbd5e1;">Total Votes Cast:</span>
+            <span id="runnerUpVotes" class="font-mono" style="font-size: 28px; font-weight: 900; color: #fbbf24;">0</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Rankings Table -->
+      <div class="tx-table-container">
+        <table class="tx-table" style="width: 100%;">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Candidate Name</th>
+              <th>Category / Group</th>
+              <th>Total Votes</th>
+              <th>Vote Share</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="certifiedRankingsTableBody">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= STEP-BY-STEP SETUP STEPPER ================= -->
+    <div id="setupWizardStepper" class="glass-card" style="margin-bottom: 22px; padding: 18px 24px; border: 1px solid rgba(59, 130, 246, 0.25);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <span class="kpi-tag tag-blue" style="font-size: 11px;">SETUP WORKFLOW</span>
+          <h3 style="font-size: 16px; font-weight: 700; color: #f8fafc; margin: 4px 0 0;">
+            3-Step Election Setup
+          </h3>
+        </div>
+        <div id="wizardOverallStatus" class="kpi-tag tag-purple font-mono" style="font-size: 12px;">
+          Step 1: Add Candidates
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+        <!-- Step 1 Stepper Card -->
+        <div id="stepCard1" onclick="switchTab('tab-candidates')" style="cursor: pointer; padding: 14px 16px; border-radius: 10px; border: 2px solid #3b82f6; background: rgba(59, 130, 246, 0.08); transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-size: 13px; color: #60a5fa;">STEP 1</strong>
+            <span id="stepIcon1" class="kpi-tag tag-blue" style="font-size: 11px;">Active</span>
+          </div>
+          <div style="font-size: 14px; font-weight: 700; color: #ffffff;">Add Candidates</div>
+          <p id="stepDesc1" style="font-size: 12px; color: #94a3b8; margin: 4px 0 0;">Register candidate options to be voted on.</p>
+        </div>
+
+        <!-- Step 2 Stepper Card -->
+        <div id="stepCard2" onclick="switchTab('tab-import')" style="cursor: pointer; padding: 14px 16px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); opacity: 0.7; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-size: 13px; color: #cbd5e1;">STEP 2</strong>
+            <span id="stepIcon2" class="kpi-tag tag-purple" style="font-size: 11px;">Pending Step 1</span>
+          </div>
+          <div style="font-size: 14px; font-weight: 700; color: #ffffff;">Upload Voters List</div>
+          <p id="stepDesc2" style="font-size: 12px; color: #94a3b8; margin: 4px 0 0;">Upload Excel/CSV sheet of eligible voters.</p>
+        </div>
+
+        <!-- Step 3 Stepper Card -->
+        <div id="stepCard3" onclick="switchTab('tab-lifecycle')" style="cursor: pointer; padding: 14px 16px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); opacity: 0.7; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-size: 13px; color: #cbd5e1;">STEP 3</strong>
+            <span id="stepIcon3" class="kpi-tag tag-purple" style="font-size: 11px;">Pending Steps 1 & 2</span>
+          </div>
+          <div style="font-size: 14px; font-weight: 700; color: #ffffff;">Set Timer & Start Voting</div>
+          <p id="stepDesc3" style="font-size: 12px; color: #94a3b8; margin: 4px 0 0;">Configure duration and launch voting.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('tab-candidates')">
+        👥 Step 1: Add Candidates (<span id="tabCandidateCount">0</span>)
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-import')">
+        📄 Step 2: Upload Voters List (<span id="tabVoterCount">0</span>)
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-lifecycle')">
+        ⏱️ Step 3: Timer & Start Voting
+      </button>
+    </div>
+
+    <!-- ================= TAB 1 (STEP 1): ADD CANDIDATES ================= -->
+    <div id="tab-candidates" class="tab-pane active">
+      <div class="content-grid-2">
+        <!-- Add Candidate Card -->
+        <div class="glass-card">
+          <div class="card-header-row">
+            <div>
+              <span class="kpi-tag tag-blue" style="margin-bottom: 6px;">STEP 1 OF 3</span>
+              <h3>➕ Add Candidate</h3>
+            </div>
+            <span style="font-size: 12px; color: #64748b;">Official Record</span>
+          </div>
+
+          <!-- LOCK BANNER (Shown ONLY when voting is ACTIVE) -->
+          <div id="candLockdownNotice" style="display: none; background: rgba(239, 68, 68, 0.12); border: 2px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-md); padding: 18px; margin-bottom: 18px; text-align: center;">
+            <div style="font-size: 26px; margin-bottom: 4px;">🔒</div>
+            <h4 style="color: #f87171; font-size: 15px; font-weight: 700; margin-bottom: 4px;">
+              Candidate Changes Closed
+            </h4>
+            <p style="color: #cbd5e1; font-size: 12px; margin: 0; line-height: 1.45;">
+              Voting is currently <strong>ACTIVE</strong>. Candidates cannot be added or modified while voting is in progress.
+            </p>
+          </div>
+
+          <form id="candidateForm">
+            <!-- First Name & Last Name -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+              <div class="form-group-custom" style="margin-bottom: 0;">
+                <label for="candFirstName">First Name *</label>
+                <input type="text" class="input-custom" id="candFirstName" placeholder="e.g. Alex" required autocomplete="off">
+              </div>
+              <div class="form-group-custom" style="margin-bottom: 0;">
+                <label for="candLastName">Last Name *</label>
+                <input type="text" class="input-custom" id="candLastName" placeholder="e.g. Morgan" required autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Phone Number & Location -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+              <div class="form-group-custom" style="margin-bottom: 0;">
+                <label for="candPhone">Phone Number *</label>
+                <input type="tel" class="input-custom" id="candPhone" placeholder="e.g. +1 (555) 019-2834" required autocomplete="off">
+              </div>
+              <div class="form-group-custom" style="margin-bottom: 0;">
+                <label for="candLocation">Location / Region *</label>
+                <input type="text" class="input-custom" id="candLocation" placeholder="e.g. Ward 4 / Main Campus" required autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Category / Party -->
+            <div class="form-group-custom">
+              <label for="party">Category / Department / Party *</label>
+              <input type="text" class="input-custom" id="party" placeholder="e.g. Computer Science / Team Alpha / Independent" required autocomplete="off">
+            </div>
+
+            <!-- Description / Bio -->
+            <div class="form-group-custom">
+              <label for="manifesto">Description / Bio</label>
+              <textarea class="input-custom" id="manifesto" rows="2" placeholder="Brief description or background of candidate..." style="resize: vertical;"></textarea>
+            </div>
+
+            <!-- Camera & Photo Capture Section -->
+            <div class="form-group-custom" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 14px; margin-bottom: 18px;">
+              <label style="font-size: 13px; font-weight: 700; color: #cbd5e1; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                <span>📷 Candidate Photo & Identity</span>
+                <span id="candPhotoStatusBadge" class="kpi-tag tag-purple" style="font-size: 11px;">Photo Optional</span>
+              </label>
+
+              <!-- Live Video Feed Container -->
+              <div id="candCameraBox" style="display: none; position: relative; width: 100%; height: 190px; border-radius: 8px; overflow: hidden; background: #000; margin-bottom: 12px; border: 1px solid rgba(59, 130, 246, 0.4);">
+                <video id="candCameraVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+                <div style="position: absolute; top: 8px; left: 10px; background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 4px; font-size: 11px; color: #10b981; font-weight: 600;">
+                  ● Camera Active
+                </div>
+              </div>
+
+              <!-- Photo Canvas (Hidden) -->
+              <canvas id="candPhotoCanvas" style="display: none;"></canvas>
+
+              <!-- Photo Preview Container -->
+              <div id="candPhotoPreviewBox" style="display: none; align-items: center; gap: 14px; background: rgba(255, 255, 255, 0.04); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                <img id="candPhotoPreviewImg" src="" alt="Candidate Preview" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 2px solid #10b981;">
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 13px; font-weight: 700; color: #ffffff;">Photo Attached</div>
+                  <div id="candPhotoHashDisplay" class="font-mono" style="font-size: 11px; color: #6ee7b7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">SHA-256: Ready</div>
+                </div>
+                <button type="button" id="btnClearCandPhoto" class="btn-secondary-custom" style="padding: 6px 12px; font-size: 12px; color: #f87171; border-color: rgba(239, 68, 68, 0.4);">
+                  Remove
+                </button>
+              </div>
+
+              <!-- Camera Controls -->
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" id="btnStartCandCamera" class="btn-secondary-custom" style="padding: 9px 15px; font-size: 13px; flex: 1;">
+                  📷 Open Camera
+                </button>
+                <button type="button" id="btnCaptureCandPhoto" class="btn-gradient" style="display: none; padding: 9px 15px; font-size: 13px; flex: 1;">
+                  📸 Capture Snapshot
+                </button>
+                <button type="button" id="btnUploadCandPhoto" class="btn-secondary-custom" style="padding: 9px 15px; font-size: 13px; flex: 1;">
+                  📁 Upload Photo
+                </button>
+                <input type="file" id="candPhotoFileInput" accept="image/*" style="display: none;">
+              </div>
+              <input type="hidden" id="candPhotoBase64" value="">
+            </div>
+
+            <!-- Legacy compatibility hidden name input if scripts query it -->
+            <input type="hidden" id="name" value="">
+
+            <button id="addCandidate" type="submit" class="btn-gradient" style="width: 100%; padding: 15px; font-size: 15px;">
+              ➕ Register Candidate
+            </button>
+          </form>
+
+          <!-- Step 1 Complete -> Proceed to Step 2 Action -->
+          <div id="step1ProceedNotice" style="display: none; margin-top: 18px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 14px 18px; text-align: center;">
+            <span style="color: #34d399; font-weight: 700; font-size: 13px;">✓ Step 1 Complete: Candidates Added</span>
+            <div style="margin-top: 8px;">
+              <button type="button" class="btn-secondary-custom" style="padding: 10px 20px; font-size: 13px;" onclick="switchTab('tab-import')">
+                Proceed to Step 2: Upload Voters List ➔
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Information & Guidelines Card -->
+        <div class="glass-card">
+          <div class="card-header-row">
+            <h3>ℹ️ Guidelines</h3>
+            <span class="kpi-tag tag-blue">Universal Use</span>
+          </div>
+          <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin-bottom: 16px;">
+            This system can be used for schools, colleges, companies, clubs, or organizations.
+          </p>
+          <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 13px; color: #cbd5e1;">
+            <li style="display: flex; gap: 10px; align-items: flex-start;">
+              <span style="color: #10b981; font-size: 16px;">✓</span>
+              <span><strong>Step-by-Step Flow:</strong> Add candidates first, then upload your voters list, then start the voting timer.</span>
+            </li>
+            <li style="display: flex; gap: 10px; align-items: flex-start;">
+              <span style="color: #3b82f6; font-size: 16px;">✓</span>
+              <span><strong>Tamper-Proof:</strong> Once voting begins, candidates and voter lists are locked to prevent alterations.</span>
+            </li>
+            <li style="display: flex; gap: 10px; align-items: flex-start;">
+              <span style="color: #3b82f6; font-size: 16px;">✓</span>
+              <span><strong>Private Ballots:</strong> Vote counts remain private during active voting and display automatically when time ends.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Live Candidates Grid -->
+      <div style="margin-top: 10px;">
+        <h3 style="margin-bottom: 18px; font-size: 18px;">Registered Candidates</h3>
+        <div id="candidateRoster" class="candidate-grid-cards">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 2 (STEP 2): UPLOAD VOTERS LIST (EXCEL / CSV) ================= -->
+    <div id="tab-import" class="tab-pane">
+      <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+        <div class="card-header-row">
+          <div>
+            <span class="kpi-tag tag-blue" style="margin-bottom: 6px;">STEP 2 OF 3</span>
+            <h3>📄 Upload Voters List (Excel or CSV)</h3>
+            <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">
+              Upload your spreadsheet (.xlsx, .xls, or .csv). The system reads each voter's Unique ID and Full Name.
+            </p>
+          </div>
+          <button class="btn-secondary-custom" type="button" onclick="App.downloadSampleExcel()">
+            📄 Download Sample Template
+          </button>
+        </div>
+
+        <!-- STEP 1 REQUIRED WARNING (Shown when 0 candidates) -->
+        <div id="step2ReqAlert" style="display: none; background: rgba(245, 158, 11, 0.12); border: 2px solid rgba(245, 158, 11, 0.4); border-radius: var(--radius-md); padding: 22px 24px; margin: 20px 0; text-align: center;">
+          <div style="font-size: 34px; margin-bottom: 6px;">⚠️</div>
+          <h4 style="color: #fbbf24; font-size: 16px; font-weight: 800; margin-bottom: 6px;">
+            Step 1 Required First: Add Candidates
+          </h4>
+          <p style="color: #cbd5e1; font-size: 13px; max-width: 600px; margin: 0 auto 14px; line-height: 1.5;">
+            Please add at least one candidate (Step 1) before uploading the voters list.
+          </p>
+          <button type="button" class="btn-secondary-custom" style="padding: 10px 20px; font-size: 13px; border-color: #fbbf24; color: #fbbf24;" onclick="switchTab('tab-candidates')">
+            ⬅ Go to Step 1: Add Candidates
+          </button>
+        </div>
+
+        <!-- LOCK BANNER (Shown ONLY when voting is ACTIVE) -->
+        <div id="dbLockdownNotice" style="display: none; background: rgba(239, 68, 68, 0.12); border: 2px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-md); padding: 26px 24px; margin: 20px 0; text-align: center;">
+          <div style="font-size: 38px; margin-bottom: 8px;">🔒</div>
+          <h3 style="color: #f87171; font-size: 17px; font-weight: 800; margin-bottom: 6px;">
+            VOTING ACTIVE: VOTERS LIST LOCKED
+          </h3>
+          <p style="color: #cbd5e1; font-size: 13px; max-width: 620px; margin: 0 auto 14px; line-height: 1.55;">
+            Voting is currently <strong>ACTIVE</strong>. To ensure fairness and prevent tampering, the voters list cannot be uploaded or altered while voting is in progress.
+          </p>
+          <span class="kpi-tag tag-purple">List Locked for Security</span>
+        </div>
+
+        <!-- Drag & Drop Upload Zone -->
+        <div id="dropZone" style="border: 2px dashed rgba(59, 130, 246, 0.4); border-radius: var(--radius-md); padding: 40px; text-align: center; background: rgba(14, 21, 38, 0.4); cursor: pointer; transition: all 0.25s ease; margin: 20px 0;" onclick="document.getElementById('excelFileInput').click()">
+          <div style="font-size: 42px; margin-bottom: 12px;">📊</div>
+          <h4 style="font-size: 16px; font-weight: 700; color: #f8fafc; margin-bottom: 6px;">
+            Click to Browse or Drag & Drop Excel / CSV File
+          </h4>
+          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 14px;">
+            Supported formats: <strong>.xlsx, .xls, .csv</strong> (Columns: <code>Unique_ID</code>, <code>Full_Name</code>)
+          </p>
+          <span class="btn-secondary-custom" style="display: inline-block;">
+            Select Spreadsheet File
+          </span>
+          <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="App.handleFileSelect(event)">
+        </div>
+
+        <!-- File Upload Status / Preview -->
+        <div id="uploadStatusBox" style="display: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div>
+              <strong id="selectedFileName" style="color: #60a5fa;">filename.xlsx</strong>
+              <span id="selectedFileSize" style="color: #94a3b8; font-size: 12px; margin-left: 8px;">(0 KB)</span>
+            </div>
+            <span class="kpi-tag tag-blue" id="parsedCountBadge">0 Records Detected</span>
+          </div>
+          <div id="uploadAlert" style="margin-top: 10px; font-size: 13px;"></div>
+        </div>
+
+        <button id="btnConfirmImport" class="btn-gradient" style="width: 100%; padding: 16px; font-size: 15px;" onclick="App.submitImportedVoters()" disabled>
+          ⚡ Upload Voters List
+        </button>
+
+        <!-- Step 2 Complete -> Proceed to Step 3 Action -->
+        <div id="step2ProceedNotice" style="display: none; margin-top: 18px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 14px 18px; text-align: center;">
+          <span style="color: #34d399; font-weight: 700; font-size: 13px;">✓ Step 2 Complete: Voters List Uploaded</span>
+          <div style="margin-top: 8px;">
+            <button type="button" class="btn-secondary-custom" style="padding: 10px 20px; font-size: 13px;" onclick="switchTab('tab-lifecycle')">
+              Proceed to Step 3: Set Timer & Start Voting ➔
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 3 (STEP 3): TIMER & START VOTING ================= -->
+    <div id="tab-lifecycle" class="tab-pane">
+      <div class="content-grid-2">
+        <!-- Customizable Timeline Form (Hours, Minutes, Seconds) -->
+        <div class="glass-card">
+          <div class="card-header-row">
+            <div>
+              <span class="kpi-tag tag-blue" style="margin-bottom: 6px;">STEP 3 OF 3</span>
+              <h3>⏱️ Set Voting Timer</h3>
+            </div>
+            <span class="kpi-tag tag-purple">Hours • Mins • Secs</span>
+          </div>
+
+          <!-- STEP 1 & 2 INCOMPLETE ALERT -->
+          <div id="step3ReqAlert" style="display: none; background: rgba(245, 158, 11, 0.12); border: 2px solid rgba(245, 158, 11, 0.4); border-radius: var(--radius-md); padding: 18px; margin-bottom: 18px;">
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 20px;">⚠️</span>
+              <strong style="color: #fbbf24; font-size: 14px;">Prerequisites Required</strong>
+            </div>
+            <p style="color: #cbd5e1; font-size: 12px; margin: 0 0 10px; line-height: 1.5;">
+              Please complete Steps 1 and 2 before starting the voting timer:
+            </p>
+            <div style="font-size: 12px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
+              <div id="step3CheckCand" style="color: #f87171;">❌ Step 1: Add Candidates (0 registered)</div>
+              <div id="step3CheckVoters" style="color: #f87171;">❌ Step 2: Upload Voters List (0 voters)</div>
+            </div>
+          </div>
+
+          <div id="timelineActiveNotice" style="display: none; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md); padding: 14px; margin-bottom: 18px; text-align: center;">
+            <span style="color: #34d399; font-weight: 700; font-size: 14px;">● Voting Timer Active</span>
+            <p style="color: #94a3b8; font-size: 12px; margin: 4px 0 0;">Voting is live. Admin modifications are locked until time expires.</p>
+          </div>
+
+          <form id="datesForm">
+            <!-- Quick Presets -->
+            <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">
+              ⚡ Quick Presets:
+            </label>
+            <div style="display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap;">
+              <button type="button" class="btn-secondary-custom timeline-ctrl" style="padding: 6px 12px; font-size: 12px;" onclick="App.applyTimePreset(0, 2, 0)">⏱️ 2 Mins</button>
+              <button type="button" class="btn-secondary-custom timeline-ctrl" style="padding: 6px 12px; font-size: 12px;" onclick="App.applyTimePreset(0, 5, 0)">⏱️ 5 Mins</button>
+              <button type="button" class="btn-secondary-custom timeline-ctrl" style="padding: 6px 12px; font-size: 12px;" onclick="App.applyTimePreset(0, 15, 0)">⏱️ 15 Mins</button>
+              <button type="button" class="btn-secondary-custom timeline-ctrl" style="padding: 6px 12px; font-size: 12px;" onclick="App.applyTimePreset(1, 0, 0)">⏱️ 1 Hour</button>
+              <button type="button" class="btn-secondary-custom timeline-ctrl" style="padding: 6px 12px; font-size: 12px;" onclick="App.applyTimePreset(24, 0, 0)">⏱️ 24 Hours</button>
+              <button type="button" class="btn-secondary-custom timeline-ctrl" style="padding: 6px 12px; font-size: 12px;" onclick="App.applyTimePreset(168, 0, 0)">⏱️ 7 Days</button>
+            </div>
+
+            <!-- Custom Hours, Minutes, Seconds Inputs -->
+            <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">
+              ⏱️ Custom Duration (Hours, Minutes, Seconds):
+            </label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px;">
+              <div>
+                <label style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px;">Hours</label>
+                <input id="timelineHours" class="input-custom timeline-ctrl" type="number" min="0" max="720" value="0" oninput="App.updateTimelinePreview()">
+              </div>
+              <div>
+                <label style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px;">Minutes</label>
+                <input id="timelineMinutes" class="input-custom timeline-ctrl" type="number" min="0" max="59" value="5" oninput="App.updateTimelinePreview()">
+              </div>
+              <div>
+                <label style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px;">Seconds</label>
+                <input id="timelineSeconds" class="input-custom timeline-ctrl" type="number" min="0" max="59" value="0" oninput="App.updateTimelinePreview()">
+              </div>
+            </div>
+
+            <!-- Calculated Live Duration Preview -->
+            <div id="timelinePreviewBox" style="background: rgba(0,0,0,0.35); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; font-size: 13px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #94a3b8;">Configured Duration:</span>
+                <strong id="previewDurationText" class="font-mono" style="color: #34d399;">0h 5m 0s (300 secs)</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 12px;">
+                <span style="color: #64748b;">Voting Closes At:</span>
+                <span id="previewEndTimeText" class="font-mono" style="color: #60a5fa;">Calculating...</span>
+              </div>
+            </div>
+
+            <button id="addDate" type="button" class="btn-gradient" style="width: 100%; padding: 16px; font-size: 15px;" onclick="App.broadcastCustomTimeline()">
+              💾 Start Voting Timer
+            </button>
+          </form>
+        </div>
+
+        <!-- Controls -->
+        <div class="glass-card">
+          <div class="card-header-row">
+            <h3>⚡ Voting Controls</h3>
+            <span class="kpi-tag tag-green">Admin Only</span>
+          </div>
+          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 20px;">
+            End the voting session early or reset the election to start a new round.
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button id="btnCloseElection" class="btn-secondary-custom" style="padding: 14px; background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #f87171; font-weight: 700; text-align: left;">
+              ⏹ End Voting & View Results
+            </button>
+            <button id="btnDownloadVoterCSV" type="button" class="btn-secondary-custom" style="padding: 14px; background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: #34d399; font-weight: 700; text-align: left;" onclick="App.downloadVoterPhotoCSV()">
+              📥 Download Voters Details & Photo URLs (.csv)
+            </button>
+            <button id="btnResetElection" type="button" class="btn-secondary-custom" style="padding: 14px; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #60a5fa; font-weight: 700; text-align: left;" onclick="App.resetElectionCycle()">
+              🔄 Reset / Start New Election Session
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Identity Bar -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 32px;">
+      <div>
+        <span style="font-size: 12px; color: #94a3b8;">System Contract: </span>
+        <code id="contractAddrDisplay" style="color: #60a5fa; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 4px;">0x0000000000000000000000000000000000000000</code>
+      </div>
+      <div id="accountAddress" style="font-size: 13px; color: #cbd5e1;">
+        Connecting...
+      </div>
+    </div>
+  </main>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      
+      const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(tabId));
+      if (targetBtn) targetBtn.classList.add('active');
+      
+      const pane = document.getElementById(tabId);
+      if (pane) pane.classList.add('active');
+    }
+  </script>
+  <script src="../dist/app.bundle.js" type="module"></script>
+</body>
+</html>
