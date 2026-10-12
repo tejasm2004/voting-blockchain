@@ -1,161 +1,249 @@
-# Decentralized-Voting-System-Using-Ethereum-Blockchain
+# Decentralized Voting System on Ethereum Blockchain
 
-#### The Decentralized Voting System using Ethereum Blockchain is a secure and transparent solution for conducting elections. Leveraging Ethereum's blockchain technology, this system ensures tamper-proof voting records, enabling users to cast their votes remotely while maintaining anonymity and preventing fraud. Explore this innovative project for trustworthy and decentralized voting processes.
-#### For a cool demo of this project watch this [YouTube video](https://www.youtube.com/watch?v=a5CJ70D2P-E).
-#### For more details checkout [Project Report](https://github.com/Krish-Depani/Decentralized-Voting-System-Using-Ethereum-Blockchain/blob/main/Project%20Report%20github.pdf).
-#### PS: This project is not maintained anymore.
+A modern, transparent, and tamper-proof **Decentralized Voting System** powered by Ethereum smart contracts, Python FastAPI backend, and an intuitive web interface. Built for universities, student councils, corporate boards, clubs, and civic organizations seeking cryptographic election integrity without intermediaries.
 
-## Features
--  Implements JWT for secure voter authentication and authorization.
--  Utilizes Ethereum blockchain for tamper-proof and transparent voting records.
--  Removes the need for intermediaries, ensuring a trustless voting process.
--  Admin panel to manage candidates, set voting dates, and monitor results.
--  Intuitive UI for voters to cast votes and view candidate information.
+---
 
-## Requirements
-- Node.js (version – 18.14.0)
-- Metamask
-- Python (version – 3.9)
-- FastAPI
-- MySQL Database (port – 3306)
+## 🌟 Key Features
 
-## Screenshots
+* **⛓️ Immutable Ethereum Smart Contract:** Every ballot cast is permanently mined into a block on the local EVM blockchain (`Voting.sol`). Once cast, votes cannot be modified, deleted, or manipulated by anyone (not even the election administrator).
+* **🔒 Sequential 3-Step Setup Workflow:**
+  1. **Add Candidates:** Register candidate details including **First Name**, **Last Name**, **Phone Number**, **Location**, **Category/Party**, **Bio**, and **Camera Snapshot or Photo Upload** with live SHA-256 fingerprint generation.
+  2. **Upload Voters List:** Import an eligible voters roster directly from an Excel (`.xlsx`, `.xls`) or CSV sheet with built-in schema validation and sample template download.
+  3. **Customizable Timer:** Configure the voting window in **Days**, **Hours**, **Minutes**, and **Seconds** (with quick-select presets like *1 Min*, *5 Mins*, *1 Hour*).
+* **🛡️ Consensus Lockout:** Once the voting window becomes active, candidate nominations and the voters database are strictly locked on both the blockchain and the backend to prevent mid-election alterations.
+* **📷 Biometric Voter Verification:**
+  * Citizen enrollment only unlocks after all 3 setup prerequisites are fulfilled.
+  * Captures a live webcam snapshot during voter verification and calculates an SHA-256 cryptographic hash.
+  * Ballot cards display each candidate's real captured photo, category, and location.
+* **🗳️ Secret Ballots (Zero Bandwagon Bias):** Live vote counts and percentages remain completely hidden during the active voting window so voters cannot be swayed.
+* **🏆 Certified Results & Audit Trail:**
+  * When time expires, polls automatically conclude.
+  * Displays 1st Position (**Green**) and 2nd Position (**Yellow**) without emojis, plus a full candidate rankings breakdown.
+  * **CSV Audit Export:** Download complete voter records with verification timestamps, SHA-256 image hashes, and photo URLs in a clean `.csv` file.
+  * **Cycle Reset:** Admin can wipe candidate nominations on-chain and reset for a fresh election round with one click.
 
-![Login Page](https://github.com/Krish-Depani/Decentralized-Voting-System-Using-Ethereum-Blockchain/blob/main/public/login%20ss.png)
+---
 
-![Admin Page](https://github.com/Krish-Depani/Decentralized-Voting-System-Using-Ethereum-Blockchain/blob/main/public/admin%20ss.png)
+## 🛠️ Tech Stack & Architecture
 
-![Voter Page](https://github.com/Krish-Depani/Decentralized-Voting-System-Using-Ethereum-Blockchain/blob/main/public/index%20ss.png)
+| Layer | Technologies Used |
+|---|---|
+| **Blockchain / Smart Contract** | Solidity (`^0.5.15`), Truffle Suite, Ganache (Local EVM) |
+| **Web3 Client** | Web3.js (`^1.9.0`), `@truffle/contract`, Browserify |
+| **Backend API & Database** | Python 3.11, FastAPI, SQLite3 (Zero setup), Uvicorn, PyJWT |
+| **Frontend UI** | HTML5, CSS3, JavaScript, SheetJS (`xlsx`) for client-side Excel parsing |
+| **Application Server** | Node.js, Express.js (Port `8080`) |
 
-## Installation
+---
 
-1. Open a terminal.
+## 📋 Prerequisites & Software Required
 
-2. Clone the repository by using the command
-        
-        git clone https://github.com/Krish-Depani/Decentralized-Voting-System-Using-Ethereum-Blockchain.git
+Before running the project from scratch, make sure the following software is installed on your computer:
 
-3. Download and install [Ganache](https://trufflesuite.com/ganache/).
+1. **[Node.js](https://nodejs.org/)** (v18.x or v20.x LTS)
+2. **[Python](https://www.python.org/downloads/)** (v3.9 to v3.11) - *Make sure "Add Python to PATH" is checked during installation.*
+3. **[Ganache](https://trufflesuite.com/ganache/)** (Desktop GUI or CLI)
+4. **[Visual Studio Code](https://code.visualstudio.com/)**
+5. **[Git](https://git-scm.com/)**
 
-4. Create a workspace named <b>developement</b>, in the truffle projects section add `truffle-config.js` by clicking `ADD PROJECT` button.
+---
 
-5. Download [Metamask](https://metamask.io/download/) extension for the browser.
+## 🚀 Step-by-Step Guide to Run in VS Code from Scratch
 
-6. Now create wallet (if you don't have one), then import accounts from ganache.
+### Step 1: Open Project in VS Code
+1. Open Visual Studio Code.
+2. Select **File ➔ Open Folder...** and choose this project directory:
+   ```text
+   voting-blockchain
+   ```
+3. Open a terminal in VS Code using the shortcut:  
+   ``Ctrl + ` `` (Backtick) or via menu **Terminal ➔ New Terminal**.
 
-7. Add network to the metamask. ( Network name - Localhost 7575, RPC URl - http://localhost:7545, Chain ID - 1337, Currency symbol - ETH)
+---
 
-8. Open MySQL and create database named <b>voter_db</b>. (DON'T USE XAMPP)
+### Step 2: Install Node.js Dependencies
+In your VS Code terminal, install the required npm packages:
+```powershell
+npm install
+```
+*(This installs Web3, Truffle contracts, Express, Browserify, and required build tools.)*
 
-9. In the database created, create new table named <b>voters</b> in the given format and add some values.
+---
 
-           CREATE TABLE voters (
-           voter_id VARCHAR(36) PRIMARY KEY NOT NULL,
-           role ENUM('admin', 'user') NOT NULL,
-           password VARCHAR(255) NOT NULL
-           );
-   <br>
+### Step 3: Install Python Dependencies
+Install the required backend packages using `pip`:
+```powershell
+pip install -r requirements.txt
+```
+*Dependencies installed:*
+* `fastapi` - High-performance backend API
+* `uvicorn[standard]` - ASGI server
+* `pydantic` - Data modeling and validation
+* `python-dotenv` - Environment variable loading
+* `PyJWT` - Secure token creation
 
-        +--------------------------------------+-------+-----------+
-        | voter_id                             | role  | password  |
-        +--------------------------------------+-------+-----------+
-        |                                      |       |           |
-        +--------------------------------------+-------+-----------+
+*(Note: SQLite comes built into Python, so no external database installation or MySQL server configuration is needed!)*
 
-12. Install truffle globally
-    
-        npm install -g truffle
+---
 
-14. Go to the root directory of repo and install node modules
+### Step 4: Start Local Blockchain (Ganache)
+You can run Ganache in either of the two following ways:
 
-        npm install
+#### Option A: Using Ganache Desktop GUI (Recommended for Visual Viva / Demos)
+1. Open the **Ganache** desktop application.
+2. Click **Quickstart Ethereum**.
+3. Confirm the RPC Server is running on:
+   ```text
+   HTTP://127.0.0.1:7545
+   Network ID: 5777
+   ```
 
-15. Install python dependencies
+#### Option B: Using Ganache CLI in VS Code
+Open a new terminal tab in VS Code and run:
+```powershell
+npx ganache --port 7545 --networkId 5777 --wallet.deterministic
+```
+*(Leave this terminal running in the background).*
 
-        pip install fastapi mysql-connector-python pydantic python-dotenv uvicorn uvicorn[standard] PyJWT
+---
 
-## Usage
+### Step 5: Compile & Deploy Smart Contracts
+Open a new terminal tab in VS Code and run:
+```powershell
+npx truffle compile
+npx truffle migrate --reset
+```
+*Expected Output:*
+* `Voting` smart contract compiles successfully.
+* Deployment completes on the `development` network (Port `7545`).
+* Artifacts are saved to `build/contracts/Voting.json`.
 
-#### Note: Update the database credentials in the `./Database_API/.env` file.
+*(Optional)* If you make edits to `src/js/app.js`, rebuild the browser bundle:
+```powershell
+npx browserify src/js/app.js -o src/dist/app.bundle.js
+```
 
-1. Open terminal at the project directory
+---
 
-2. Open Ganache and it's <b>development</b> workspace.
+### Step 6: Start Python FastAPI Backend Server
+Open another terminal tab in VS Code, navigate to `Database_API`, and start Uvicorn:
+```powershell
+cd Database_API
+python -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+* The backend API will be live at: `http://127.0.0.1:8000`
+* Interactive API documentation: `http://127.0.0.1:8000/docs`
 
-3. open terminal in project's root directory and run the command
+---
 
-        truffle console
-   then compile the smart contracts with command
+### Step 7: Start Express Frontend Server
+Open a final terminal tab in VS Code and start the web server from the project root:
+```powershell
+node index.js
+```
+* The voting web portal will be accessible at: **`http://localhost:8080`**
 
-        compile
-   exit the truffle console
+---
 
-5. Bundle app.js with browserify
-    
-        browserify ./src/js/app.js -o ./src/dist/app.bundle.js
+### ⚡ Alternative: One-Click Launch (PowerShell)
+If you prefer to start all services simultaneously with a single script, run in PowerShell:
+```powershell
+.\run.ps1
+```
 
-2. Start the node server server
-    
-        node index.js
+---
 
-3. Navigate to `Database_API` folder in another terminal
-    
-        cd Database_API
-    then start the database server by following command
+## 🖥️ End-to-End Walkthrough & Usage
 
-        uvicorn main:app --reload --host 127.0.0.1
+### 1. Admin Login & Setup Mode
+1. Open your browser and navigate to **`http://localhost:8080`**.
+2. Select **Administrator / Authority** and log in:
+   * **Username / Voter ID:** `admin`
+   * **Password:** `admin123`
+3. You will be redirected to the **Admin Dashboard** (`admin.html`).
 
-4. In a new terminal migrate the truffle contract to local blockchain
-    
-        truffle migrate
+### 2. Follow the 3-Step Setup Workflow
+* **Step 1: Add Candidates**
+  * Enter Candidate First Name, Last Name, Phone Number, Location, and Category/Party.
+  * Click **📷 Open Camera** to capture a live webcam photo (or **📁 Upload Photo** from disk).
+  * Click **➕ Register Candidate**. The candidate is sealed on the Ethereum blockchain and in the backend.
+* **Step 2: Upload Voters List**
+  * Click **Download Sample Template** to inspect the required format (`Unique_ID`, `Full_Name`, `Locality`).
+  * Drag and drop your `.xlsx` or `.csv` spreadsheet and click **Upload Voters List**.
+* **Step 3: Set Timer & Launch Election**
+  * Pick a duration (e.g., click **5 Mins** or enter custom hours/mins/secs).
+  * Click **💾 Broadcast Timeline & Start Polls**.
+  * The countdown timer starts immediately, and admin controls are locked.
 
-You're all set! The Voting app should be up and running now at http://localhost:8080/.<br>
-For more info about usage checkout [YouTube video](https://www.youtube.com/watch?v=a5CJ70D2P-E).
+### 3. Voter Portal & Voting Flow
+1. Open **`http://localhost:8080/index.html`** (or log out from admin).
+2. Because all 3 prerequisites are met, the **Citizen Enrollment** portal appears.
+3. Allow camera access.
+4. Enter the voter's **Full Name** and **Voter ID Number** (e.g. from the uploaded roster).
+5. Click **📷 Capture Photo & Proceed to Vote**.
+   * A snapshot is taken, hashed with SHA-256, and verified against the eligible roster.
+6. Select your preferred candidate from the ballot cards (which display their real captured photo and location).
+7. Click **Vote for Candidate**.
+8. A popup shows the official **Transaction Hash** and **Block Number** mined on the blockchain.
 
-## Code Structure
+### 4. Viewing Results & Exporting Data
+1. When the countdown reaches `00:00:00`, the election status changes to **POLLS CONCLUDED**.
+2. Visit the admin page to see:
+   * **1st Position (Highest Votes):** Highlighted in **Green**.
+   * **2nd Position (Runner-up):** Highlighted in **Yellow**.
+   * Complete verified standings table.
+3. Click **📥 Download Voters & Photos (.csv)** to download a complete `.csv` audit file containing Voter ID, Name, Verification Status, Photo URL, SHA-256 Hash, and Timestamps.
+4. Click **🔄 Start New Election** to wipe candidates and start a new round.
 
-    ├── blockchain-voting-dapp            # Root directory of the project.
-        ├── build                         # Directory containing compiled contract artifacts.
-        |   └── contracts                 
-        |       ├── Migrations.json       
-        |       └── Voting.json           
-        ├── contracts                     # Directory containing smart contract source code.
-        |   ├── 2_deploy_contracts.js     
-        |   ├── Migrations.sol            
-        |   └── Voting.sol                
-        ├── Database_API                  # API code for database communication.
-        |   └── main.py                   
-        ├── migrations                    # Ethereum contract deployment scripts.
-        |   └── 1_initial_migration.js    
-        ├── node_modules                  # Node.js modules and dependencies.
-        ├── public                        # Public assets like favicon.
-        |   └── favicon.ico               
-        ├── src                           
-        |   ├── assets                    # Project images.
-        |   |   └── eth5.jpg              
-        |   ├── css                       # CSS stylesheets.
-        |   |   ├── admin.css             
-        |   |   ├── index.css             
-        |   |   └── login.css             
-        |   ├── dist                      # Compiled JavaScript bundles.
-        |   |   ├── app.bundle.js         
-        |   |   └── login.bundle.js       
-        |   ├── html                      # HTML templates.
-        |   |   ├── admin.html            
-        |   |   ├── index.html            
-        |   |   └── login.html            
-        |   └── js                        # JavaScript logic files.
-        |       ├── app.js                
-        |       └── login.js              
-        ├── index.js                      # Main entry point for Node.js application.
-        ├── package.json                  # Node.js package configuration.
-        ├── package-lock.json             # Lockfile for package dependencies.
-        ├── README.md                     # Project documentation.
-        └── truffle-config.js                    # Truffle configuration file.
+---
 
-## License
+## 🔍 What to Demonstrate in Ganache (Viva / Project Evaluation)
 
-The code in this repository is licensed under the MIT License. This means that you are free to use, modify, and distribute the code, as long as you include the original copyright and license notice. For more information about LICENSE please click [here](https://github.com/Krish-Depani/Decentralized-Voting-System-Using-Ethereum-Blockchain/blob/main/LICENSE).
+When evaluators ask to see proof of the blockchain:
+1. **Header Bar:** Show `CURRENT BLOCK` count, RPC Server (`127.0.0.1:7545`), and Network ID (`5777`).
+2. **`TRANSACTIONS` Tab:** Point to the mined transactions. Match the **TX HASH** on the screen with the receipt generated when a vote was cast. Show that calls go to the smart contract address.
+3. **`BLOCKS` Tab:** Click on the latest block to show the **Block Hash**, **Parent Hash**, and transaction payload, demonstrating the tamper-proof ledger.
+4. **`ACCOUNTS` Tab:** Point out that voter accounts spend a fraction of test ETH to pay gas fees for executing `vote()`.
 
-## If you like this project, please give it a 🌟.
-## Thank you 😊.
+---
+
+## 📁 Repository Structure
+
+```text
+├── contracts/
+│   ├── Voting.sol              # Core Ethereum voting contract (Candidates, Votes, Rounds, Reset)
+│   ├── Migrations.sol          # Truffle deployment migration tracker
+│   └── 2_deploy_contracts.js   # Migration deployment configuration
+├── Database_API/
+│   ├── captured_photos/        # Directory storing captured voter and candidate snapshots
+│   ├── main.py                 # FastAPI backend (Auth, SQLite storage, SHA-256 hashing, CSV export)
+│   ├── requirements.txt        # Python backend dependencies
+│   └── voter_db.sqlite         # SQLite database containing voter lists & audit logs
+├── migrations/
+│   ├── 1_initial_migration.js  # Truffle migration step 1
+│   └── 2_deploy_contracts.js   # Truffle migration step 2
+├── public/                     # Static assets and icons
+├── src/
+│   ├── css/                    # Stylesheets (style_major.css, admin.css, login.css)
+│   ├── dist/
+│   │   └── app.bundle.js       # Browserified Web3 frontend bundle
+│   ├── html/
+│   │   ├── admin.html          # Administrator setup, timer, candidate manager & certified results
+│   │   ├── index.html          # Voter portal, biometric camera check & secret ballot
+│   │   └── login.html          # Initial entry portal
+│   └── js/
+│       ├── app.js              # Web3, contract communication, camera handlers & voter verification
+│       └── login.js            # Login authentication router
+├── index.js                    # Node.js Express server & Ganache status query
+├── package.json                # Node dependencies & project metadata
+├── requirements.txt            # Python dependencies (root)
+├── run.ps1                     # One-click startup PowerShell script
+├── truffle-config.js           # Truffle compiler & Ganache network configuration
+└── README.md                   # Comprehensive project documentation
+```
+
+---
+
+## 📄 License
+This project is licensed under the **MIT License**.
